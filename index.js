@@ -1,7 +1,7 @@
 // index.js
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, REST, Routes } = require('discord.js');
-const TOKEN = "PUNE_AICI_TOKENUL_TAU";
-const CLIENT_ID = "PUNE_AICI_CLIENT_ID"; // îl găsești în Discord Developer Portal
+const TOKEN = "MTQzNTc2MDc1NTA4NDYyMzk1Mg.GtHy4m.IWYzPVhXE1ME8lOgMLDFzI5iH0J8k00_ED47fM";
+const CLIENT_ID = "1435760755084623952"; // îl găsești în Discord Developer Portal
 const GUILD_ID = "PUNE_AICI_GUILD_ID";   // id-ul serverului tău (pentru comenzi locale)
 
 // Funcție pentru număr random
