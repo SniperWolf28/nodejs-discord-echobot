@@ -1,10 +1,21 @@
 // index.js
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, REST, Routes } = require('discord.js');
-const TOKEN = "MTQzNTc2MDc1NTA4NDYyMzk1Mg.GtHy4m.IWYzPVhXE1ME8lOgMLDFzI5iH0J8k00_ED47fM";
-const CLIENT_ID = "1435760755084623952"; // îl găsești în Discord Developer Portal
-const GUILD_ID = "PUNE_AICI_GUILD_ID";   // id-ul serverului tău (pentru comenzi locale)
+const { 
+  Client, 
+  GatewayIntentBits, 
+  EmbedBuilder, 
+  ActionRowBuilder, 
+  ButtonBuilder, 
+  ButtonStyle, 
+  Events, 
+  REST, 
+  Routes 
+} = require('discord.js');
 
-// Funcție pentru număr random
+const TOKEN = "YOUR_BOT_TOKEN_HERE";
+const CLIENT_ID = "YOUR_CLIENT_ID_HERE"; // from Discord Developer Portal
+const GUILD_ID = "YOUR_GUILD_ID_HERE";   // your server ID for local command registration
+
+// Function to generate a random number
 function randomNumber() {
   return (Math.random() * 999999).toFixed(3);
 }
@@ -13,20 +24,24 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// -------- Slash Command Setup --------
+// -------- Register Slash Command --------
 const commands = [
   {
-    name: 'numar',
-    description: 'Afișează un număr random cu butoane.'
+    name: 'number',
+    description: 'Display a random number with buttons.'
   }
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
+
 (async () => {
   try {
-    console.log('🔁 Se înregistrează comanda /numar...');
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
-    console.log('✅ Comandă /numar înregistrată!');
+    console.log('🔁 Registering slash command /number...');
+    await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      { body: commands }
+    );
+    console.log('✅ Slash command /number registered!');
   } catch (error) {
     console.error(error);
   }
@@ -34,20 +49,20 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 // -------- Bot Logic --------
 client.once(Events.ClientReady, () => {
-  console.log(`✅ Bot conectat ca ${client.user.tag}`);
+  console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand() && !interaction.isButton()) return;
 
-  // --- Slash command /numar ---
-  if (interaction.commandName === 'numar') {
+  // --- Slash command /number ---
+  if (interaction.commandName === 'number') {
     const number = randomNumber();
     const embed = new EmbedBuilder()
-      .setTitle('🎲 Număr Random')
+      .setTitle('🎲 Random Number')
       .setDescription(`\`\`\`${number}\`\`\``)
       .setColor('Blue')
-      .setFooter({ text: 'Apasă Reset pentru un nou număr sau Copy pentru a-l copia.' });
+      .setFooter({ text: 'Click Reset for a new number or Copy to copy it privately.' });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -63,14 +78,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await interaction.reply({ embeds: [embed], components: [row] });
   }
 
-  // --- Buton Reset ---
+  // --- Button Reset ---
   if (interaction.isButton() && interaction.customId === 'reset') {
     const number = randomNumber();
     const newEmbed = new EmbedBuilder()
-      .setTitle('🎲 Număr Random')
+      .setTitle('🎲 Random Number')
       .setDescription(`\`\`\`${number}\`\`\``)
       .setColor('Blue')
-      .setFooter({ text: 'Apasă Reset pentru un nou număr sau Copy pentru a-l copia.' });
+      .setFooter({ text: 'Click Reset for a new number or Copy to copy it privately.' });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -86,10 +101,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await interaction.update({ embeds: [newEmbed], components: [row] });
   }
 
-  // --- Buton Copy ---
+  // --- Button Copy ---
   if (interaction.isButton() && interaction.customId === 'copy') {
     const numberText = interaction.message.embeds[0].data.description.replace(/[`]/g, '');
-    await interaction.reply({ content: `🔢 Numărul este:\n\`\`\`${numberText}\`\`\``, ephemeral: true });
+    await interaction.reply({
+      content: `🔢 The number is:\n\`\`\`${numberText}\`\`\``,
+      ephemeral: true
+    });
   }
 });
 
