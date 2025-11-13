@@ -1,22 +1,96 @@
-const Discord = require('discord.js'); //import client from discord
+// index.js
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, REST, Routes } = require('discord.js');
+const TOKEN = "PUNE_AICI_TOKENUL_TAU";
+const CLIENT_ID = "PUNE_AICI_CLIENT_ID"; // îl găsești în Discord Developer Portal
+const GUILD_ID = "PUNE_AICI_GUILD_ID";   // id-ul serverului tău (pentru comenzi locale)
 
-const client = new Discord.Client();
+// Funcție pentru număr random
+function randomNumber() {
+  return (Math.random() * 999999).toFixed(3);
+}
 
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds]
 });
 
-client.on('message', msg => {
-    // check if message isn't from us
-    if (msg.author == client.user) {
-      return;
-    }
-    else if (msg.content === 'ping') {
-      msg.reply('Pong!');
-    }
-    else {
-        msg.reply(msg.content);
-    }
+// -------- Slash Command Setup --------
+const commands = [
+  {
+    name: 'numar',
+    description: 'Afișează un număr random cu butoane.'
+  }
+];
+
+const rest = new REST({ version: '10' }).setToken(TOKEN);
+(async () => {
+  try {
+    console.log('🔁 Se înregistrează comanda /numar...');
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
+    console.log('✅ Comandă /numar înregistrată!');
+  } catch (error) {
+    console.error(error);
+  }
+})();
+
+// -------- Bot Logic --------
+client.once(Events.ClientReady, () => {
+  console.log(`✅ Bot conectat ca ${client.user.tag}`);
 });
 
-client.login(process.env.TOKEN); //login bot using token
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isChatInputCommand() && !interaction.isButton()) return;
+
+  // --- Slash command /numar ---
+  if (interaction.commandName === 'numar') {
+    const number = randomNumber();
+    const embed = new EmbedBuilder()
+      .setTitle('🎲 Număr Random')
+      .setDescription(`\`\`\`${number}\`\`\``)
+      .setColor('Blue')
+      .setFooter({ text: 'Apasă Reset pentru un nou număr sau Copy pentru a-l copia.' });
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('reset')
+        .setLabel('🔄 Reset')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId('copy')
+        .setLabel('📋 Copy')
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    await interaction.reply({ embeds: [embed], components: [row] });
+  }
+
+  // --- Buton Reset ---
+  if (interaction.isButton() && interaction.customId === 'reset') {
+    const number = randomNumber();
+    const newEmbed = new EmbedBuilder()
+      .setTitle('🎲 Număr Random')
+      .setDescription(`\`\`\`${number}\`\`\``)
+      .setColor('Blue')
+      .setFooter({ text: 'Apasă Reset pentru un nou număr sau Copy pentru a-l copia.' });
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('reset')
+        .setLabel('🔄 Reset')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId('copy')
+        .setLabel('📋 Copy')
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    await interaction.update({ embeds: [newEmbed], components: [row] });
+  }
+
+  // --- Buton Copy ---
+  if (interaction.isButton() && interaction.customId === 'copy') {
+    const numberText = interaction.message.embeds[0].data.description.replace(/[`]/g, '');
+    await interaction.reply({ content: `🔢 Numărul este:\n\`\`\`${numberText}\`\`\``, ephemeral: true });
+  }
+});
+
+client.login(TOKEN);
