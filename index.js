@@ -10,7 +10,7 @@ const {
   REST, 
   Routes 
 } = require('discord.js');
-
+const keep_alive = require('./keep_alive.js');
 const TOKEN = "YOUR_BOT_TOKEN_HERE";
 const CLIENT_ID = "YOUR_CLIENT_ID_HERE";
 const GUILD_ID = "YOUR_GUILD_ID_HERE";
