@@ -12,102 +12,114 @@ const {
 } = require('discord.js');
 
 const TOKEN = "YOUR_BOT_TOKEN_HERE";
-const CLIENT_ID = "YOUR_CLIENT_ID_HERE"; // from Discord Developer Portal
-const GUILD_ID = "YOUR_GUILD_ID_HERE";   // your server ID for local command registration
+const CLIENT_ID = "YOUR_CLIENT_ID_HERE";
+const GUILD_ID = "YOUR_GUILD_ID_HERE";
 
-// Function to generate a random number
+// random number generator
 function randomNumber() {
   return (Math.random() * 999999).toFixed(3);
 }
+
+// default number
+let defaultNumber = "544.098";
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// -------- Register Slash Command --------
+// Slash command setup
 const commands = [
   {
-    name: 'number',
-    description: 'Display a random number with buttons.'
+    name: 'statie',
+    description: 'Show current station number with buttons.'
   }
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
-
 (async () => {
   try {
-    console.log('🔁 Registering slash command /number...');
+    console.log('🔁 Registering /statie command...');
     await rest.put(
       Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
       { body: commands }
     );
-    console.log('✅ Slash command /number registered!');
+    console.log('✅ Command registered!');
   } catch (error) {
     console.error(error);
   }
 })();
 
-// -------- Bot Logic --------
+// Bot ready
 client.once(Events.ClientReady, () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
+// Handle interactions
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand() && !interaction.isButton()) return;
 
-  // --- Slash command /number ---
-  if (interaction.commandName === 'number') {
-    const number = randomNumber();
+  // Slash command
+  if (interaction.commandName === 'statie') {
     const embed = new EmbedBuilder()
-      .setTitle('🎲 Random Number')
-      .setDescription(`\`\`\`${number}\`\`\``)
-      .setColor('Blue')
-      .setFooter({ text: 'Click Reset for a new number or Copy to copy it privately.' });
+      .setTitle('🎧 Current Station')
+      .setDescription(`\`\`\`${defaultNumber}\`\`\``)
+      .setColor('DarkButNotBlack'); // black-like background
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
+        .setCustomId('change')
+        .setLabel('🎚️ Schimbă Stația')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
         .setCustomId('reset')
         .setLabel('🔄 Reset')
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId('copy')
-        .setLabel('📋 Copy')
-        .setStyle(ButtonStyle.Secondary)
+        .setStyle(ButtonStyle.Danger)
     );
 
     await interaction.reply({ embeds: [embed], components: [row] });
   }
 
-  // --- Button Reset ---
-  if (interaction.isButton() && interaction.customId === 'reset') {
-    const number = randomNumber();
+  // Button: Schimbă Stația
+  if (interaction.isButton() && interaction.customId === 'change') {
+    const newNumber = randomNumber();
     const newEmbed = new EmbedBuilder()
-      .setTitle('🎲 Random Number')
-      .setDescription(`\`\`\`${number}\`\`\``)
-      .setColor('Blue')
-      .setFooter({ text: 'Click Reset for a new number or Copy to copy it privately.' });
+      .setTitle('🎧 Current Station')
+      .setDescription(`\`\`\`${newNumber}\`\`\``)
+      .setColor('DarkButNotBlack');
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
+        .setCustomId('change')
+        .setLabel('🎚️ Schimbă Stația')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
         .setCustomId('reset')
         .setLabel('🔄 Reset')
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId('copy')
-        .setLabel('📋 Copy')
-        .setStyle(ButtonStyle.Secondary)
+        .setStyle(ButtonStyle.Danger)
     );
 
     await interaction.update({ embeds: [newEmbed], components: [row] });
   }
 
-  // --- Button Copy ---
-  if (interaction.isButton() && interaction.customId === 'copy') {
-    const numberText = interaction.message.embeds[0].data.description.replace(/[`]/g, '');
-    await interaction.reply({
-      content: `🔢 The number is:\n\`\`\`${numberText}\`\`\``,
-      ephemeral: true
-    });
+  // Button: Reset
+  if (interaction.isButton() && interaction.customId === 'reset') {
+    const embed = new EmbedBuilder()
+      .setTitle('🎧 Current Station')
+      .setDescription(`\`\`\`${defaultNumber}\`\`\``)
+      .setColor('DarkButNotBlack');
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('change')
+        .setLabel('🎚️ Schimbă Stația')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId('reset')
+        .setLabel('🔄 Reset')
+        .setStyle(ButtonStyle.Danger)
+    );
+
+    await interaction.update({ embeds: [embed], components: [row] });
   }
 });
 
